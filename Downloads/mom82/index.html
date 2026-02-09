@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة قسم التسويق والعمليات ieatd</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajwal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Tajwal', 'sans-serif'],
+            },
+            colors: {
+              ui: {
+                lightBg: '#F8FAFC', 
+                lightCard: '#FFFFFF',
+                lightBorder: '#E2E8F0',
+                lightText: '#1E293B',
+                lightMuted: '#64748B',
+                darkBg: '#0F172A', 
+                darkCard: '#1E293B',
+                darkBorder: '#334155',
+                darkText: '#F1F5F9',
+                darkMuted: '#94A3B8'
+              },
+              accent: {
+                primary: '#4F46E5',
+                success: '#10B981',
+                error: '#EF4444'
+              }
+            }
+          }
+        }
+      }
+    </script>
+<style>
+  body {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+    overflow-x: hidden;
+  }
+  .dark body {
+    scrollbar-color: #334155 transparent;
+  }
+  .react-pdf__Page__canvas {
+    margin: 0 auto;
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 4px; 
+  }
+  .flip-book {
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?external=react,react-dom",
+    "recharts": "https://esm.sh/recharts@2.12.3?external=react,react-dom",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.8",
+    "@google/genai": "https://esm.sh/@google/genai",
+    "react-pdf": "https://esm.sh/react-pdf@7.7.1?external=react,react-dom",
+    "react-pageflip": "https://esm.sh/react-pageflip@2.0.3?external=react,react-dom"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-ui-lightBg dark:bg-ui-darkBg font-sans antialiased text-ui-lightText dark:text-ui-darkText transition-colors duration-500">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

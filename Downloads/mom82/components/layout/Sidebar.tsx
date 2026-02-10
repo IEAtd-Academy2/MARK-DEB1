@@ -93,15 +93,42 @@ const Sidebar: React.FC<SidebarProps> = ({
         </ul>
       </nav>
 
-      <div className="p-6">
+      {/* App Download Section - "Gamda" Style */}
+      <div className="px-6 mb-2">
+        <a 
+          href="https://www.appcreator24.com/app3918951-c6z1ij" 
+          target="_blank" 
+          rel="noreferrer"
+          className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-lg hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
+        >
+          {/* Subtle Shine Effect */}
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+          
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl group-hover:rotate-12 transition-transform shadow-inner">
+            📱
+          </div>
+          <div className="flex flex-col text-right">
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">تطبيق الموبايل</span>
+            <span className="text-xs font-bold leading-tight">تحميل التطبيق لتجربة أسهل</span>
+          </div>
+        </a>
+      </div>
+
+      <div className="p-6 pt-2">
         <button 
           onClick={toggleDarkMode}
-          className="w-full flex items-center justify-between p-4 rounded-2xl bg-ui-lightBg dark:bg-white/5 text-xs font-bold transition-all"
+          className="w-full flex items-center justify-between p-4 rounded-2xl bg-ui-lightBg dark:bg-white/5 text-xs font-bold transition-all border border-transparent hover:border-ui-lightBorder dark:hover:border-white/10"
         >
           <span>{isDarkMode ? 'الوضع المريح' : 'الوضع الليلي'}</span>
           <span>{isDarkMode ? '🌙' : '☀️'}</span>
         </button>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}} />
     </aside>
   );
 };

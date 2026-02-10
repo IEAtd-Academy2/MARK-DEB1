@@ -29,10 +29,10 @@ export const AuthService = {
     // 1. التحقق من صلاحيات المدير
     const isAdmin = user.email === 'info@ieatd.com'; 
 
-    // 2. البحث عن الموظف باستخدام user_id (الرابط المباشر)
+    // 2. البحث عن الموظف باستخدام user_id (الرابط المباشر) مع جلب كافة الحقول الهامة بما فيها الخزنة
     let { data: employee, error } = await supabase
       .from('employees')
-      .select('id, email, user_id, role, can_view_plans, plan_permissions, nav_permissions')
+      .select('id, email, user_id, role, can_view_plans, plan_permissions, nav_permissions, vault_permissions')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -40,7 +40,7 @@ export const AuthService = {
     if (!employee && user.email) {
       const { data: employeeByEmail } = await supabase
         .from('employees')
-        .select('id, email, user_id, role, can_view_plans, plan_permissions, nav_permissions')
+        .select('id, email, user_id, role, can_view_plans, plan_permissions, nav_permissions, vault_permissions')
         .eq('email', user.email)
         .maybeSingle();
 
@@ -70,7 +70,8 @@ export const AuthService = {
       employeeId: employee?.id,
       canViewPlans: isAdmin || employee?.can_view_plans,
       planPermissions: employee?.plan_permissions || {},
-      navPermissions: employee?.nav_permissions || {}
+      navPermissions: employee?.nav_permissions || {},
+      vaultPermissions: employee?.vault_permissions || {} // جلب صلاحيات الخزنة
     };
   }
 };

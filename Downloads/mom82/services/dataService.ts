@@ -595,12 +595,31 @@ class DataServiceManager {
   }
   public async getSiteConfig(key: string): Promise<string | null> { const { data } = await supabase.from('site_configs').select('value').eq('key', key).single(); return data?.value || null; }
   public async updateSiteConfig(key: string, value: string): Promise<void> { await supabase.from('site_configs').upsert({ key, value }); }
-  public async getEmployeeMoodAlerts(eid: string): Promise<string[]> { const { data } = await supabase.from('behavior_logs').select('week_number, mood_rating').eq('employee_id', eid).order('week_number', {ascending:false}).limit(3); return (data || []).filter(l => MOOD_RATING_MAP[l.mood_rating as MoodRating] <= MIN_MOOD_RATING_FOR_LOW_FOCUS).map(l => `تراجع أداء أسبوع ${l.week_number}`); }
+  public async getEmployeeMoodAlerts(eid: string): Promise<string[]> { 
+    const { data } = await supabase.from('behavior_logs').select('week_number, mood_rating').eq('employee_id', eid).order('week_number', {ascending:false}).limit(3); 
+    return (data || []).filter(l => {
+        let val = 5;
+        if (typeof l.mood_rating === 'number') val = l.mood_rating;
+        else if (!isNaN(Number(l.mood_rating))) val = Number(l.mood_rating);
+        else val = MOOD_RATING_MAP[l.mood_rating as MoodRating] || 5;
+        return val <= MIN_MOOD_RATING_FOR_LOW_FOCUS;
+    }).map(l => `تراجع أداء أسبوع ${l.week_number}`); 
+  }
   public async getEmployeeProblemLogs(eid: string): Promise<ProblemLog[]> { const { data } = await supabase.from('problem_logs').select('*').eq('employee_id', eid); return (data || []).map(l => this.parseDates(l, ['logged_date', 'solved_date'])); }
   public async getEmployeeProblemSolvingBonusTotal(eid: string, m: number, y: number): Promise<number> { const { data } = await supabase.from('problem_logs').select('potential_bonus_amount').eq('employee_id', eid).eq('solution_status', 'Solved'); return (data || []).reduce((s, p) => s + p.potential_bonus_amount, 0); }
-  public async getEmployeeBehaviorData(eid: string): Promise<any[]> { const logs = await this.getAllBehaviorLogs(eid); return logs.map(l => ({ week: l.week_number, moodValue: MOOD_RATING_MAP[l.mood_rating as MoodRating] || 5, moodText: l.mood_rating })); }
+  public async getEmployeeBehaviorData(eid: string): Promise<any[]> { 
+    const logs = await this.getAllBehaviorLogs(eid); 
+    return logs.map(l => {
+        let moodVal = 5;
+        if (typeof l.mood_rating === 'number') moodVal = l.mood_rating;
+        else if (!isNaN(Number(l.mood_rating))) moodVal = Number(l.mood_rating);
+        else moodVal = MOOD_RATING_MAP[l.mood_rating as MoodRating] || 5;
+        return { week: l.week_number, moodValue: moodVal, moodText: l.mood_rating };
+    }); 
+  }
   public async getAllClients(): Promise<Client[]> { const { data } = await supabase.from('clients').select('*'); return (data || []).map(c => this.parseDates(c, ['acquisition_date'])); }
   public async addBehaviorLog(log: Omit<BehaviorLog, 'id'>): Promise<BehaviorLog> { const { data, error } = await supabase.from('behavior_logs').insert(log).select().single(); if (error) throw new Error(error.message); return data; }
+  public async updateBehaviorLog(log: BehaviorLog): Promise<BehaviorLog> { const { data, error } = await supabase.from('behavior_logs').update(log).eq('id', log.id).select().single(); if (error) throw new Error(error.message); return data; }
   public async deleteBehaviorLog(id: string): Promise<void> { await supabase.from('behavior_logs').delete().eq('id', id); }
   public async addProblemLog(log: Omit<ProblemLog, 'id' | 'logged_date' | 'solution_status'>): Promise<ProblemLog> {
     const { data, error } = await supabase.from('problem_logs').insert({ ...log, logged_date: new Date().toISOString(), solution_status: SolutionStatus.Unsolved }).select().single();

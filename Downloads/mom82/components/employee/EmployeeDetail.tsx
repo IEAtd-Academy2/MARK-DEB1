@@ -64,6 +64,7 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ isPortalView = false, o
   const [showOtherCommissionForm, setShowOtherCommissionForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: string; id: string } | null>(null);
+  const [editingBehaviorLog, setEditingBehaviorLog] = useState<BehaviorLog | null>(null);
 
   const now = new Date();
   const releaseDate = new Date(selectedYear, selectedMonth, 7); 
@@ -234,8 +235,8 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ isPortalView = false, o
                     allBehaviorLogs={allBehaviorLogs}
                     behaviorChartData={behaviorChartData}
                     moodAlerts={moodAlerts}
-                    onAddBehaviorLog={() => setShowBehaviorForm(true)}
-                    onEditBehaviorLog={(l) => {}}
+                    onAddBehaviorLog={() => { setEditingBehaviorLog(null); setShowBehaviorForm(true); }}
+                    onEditBehaviorLog={(l) => { setEditingBehaviorLog(l); setShowBehaviorForm(true); }}
                     onDeleteBehaviorLog={(id) => handleDeleteItem('behavior', id)}
                     isReadOnly={isPortalView}
                 />
@@ -246,7 +247,22 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ isPortalView = false, o
       {showEmployeeForm && <EmployeeForm employee={employee} onClose={() => setShowEmployeeForm(false)} onSubmit={async (d) => { await DataService.updateEmployee(d as Employee); fetchEmployeeDetails(true); }} isModal={true} />}
       {showKpiSubmissionForm && <KpiSubmissionForm employeeId={employee.id} onClose={() => setShowKpiSubmissionForm(false)} onSubmit={async () => { fetchEmployeeDetails(true); }} isModal={true} />}
       {showKpiConfigForm && <KpiConfigForm employeeId={employee.id} onClose={() => setShowKpiConfigForm(false)} onSubmit={async () => { fetchEmployeeDetails(true); }} isModal={true} />}
-      {showBehaviorForm && <BehaviorLogForm employeeId={employee.id} onClose={() => setShowBehaviorForm(false)} onSubmit={async (d) => { await DataService.addBehaviorLog(d); fetchEmployeeDetails(true); }} isModal={true} />}
+      {showBehaviorForm && (
+        <BehaviorLogForm 
+            employeeId={employee.id} 
+            behaviorLog={editingBehaviorLog}
+            onClose={() => { setShowBehaviorForm(false); setEditingBehaviorLog(null); }} 
+            onSubmit={async (d) => { 
+                if (editingBehaviorLog) {
+                    await DataService.updateBehaviorLog({ ...editingBehaviorLog, ...d } as BehaviorLog);
+                } else {
+                    await DataService.addBehaviorLog(d); 
+                }
+                fetchEmployeeDetails(true); 
+            }} 
+            isModal={true} 
+        />
+      )}
       {showProblemForm && <ProblemLogForm employeeId={employee.id} onClose={() => setShowProblemForm(false)} onSubmit={async (d) => { await DataService.addProblemLog(d); fetchEmployeeDetails(true); }} isModal={true} />}
       {showDeductionForm && <ManualDeductionForm employeeId={employee.id} month={selectedMonth} year={selectedYear} onClose={() => setShowDeductionForm(false)} onSubmit={async (a, n) => { await DataService.addOrUpdateManualDeduction(employee.id, selectedMonth, selectedYear, a, true, n); fetchEmployeeDetails(true); }} isModal={true} />}
       {showTaskForm && <TaskForm employeeId={employee.id} onClose={() => setShowTaskForm(false)} onSubmit={async (t) => { await DataService.addTask(t); fetchEmployeeDetails(true); }} isModal={true} />}

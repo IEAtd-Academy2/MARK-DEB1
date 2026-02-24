@@ -85,6 +85,7 @@ const ReportsPage: React.FC = () => {
         const logs = await DataService.getAllBehaviorLogs(emp.id, selectedMonth, selectedYear);
         const moodValues = logs.map(l => {
             if (typeof l.mood_rating === 'number') return l.mood_rating;
+            if (!isNaN(Number(l.mood_rating))) return Number(l.mood_rating);
             return MOOD_RATING_MAP[l.mood_rating] || 5;
         });
         const avgMood = moodValues.length > 0 ? moodValues.reduce((a,b) => a+b, 0) / moodValues.length : 5;

@@ -5,9 +5,10 @@ import Alert from '../components/common/Alert';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { DataService } from '../services/dataService';
 import { EmployeeSummary, Employee, Client, PayrollBreakdown, KPIConfig, KPIRecord } from '../types';
-import { ROLE_AR_MAP, DEPARTMENT_AR_MAP } from '../constants';
+import { ROLE_AR_MAP, DEPARTMENT_AR_MAP, MOOD_RATING_MAP } from '../constants';
 import ProgressBar from '../components/common/ProgressBar';
 import AIAnalysisModal from '../components/dashboard/AIAnalysisModal'; // Import Modal
+import PerformanceEditModal from '../components/dashboard/PerformanceEditModal';
 import Button from '../components/common/Button';
 import { supabase } from '../supabaseClient'; // Import Supabase
 
@@ -24,6 +25,8 @@ interface EmployeeReportData {
   kpiProgress: number;
   performanceScore: number;
   averageMood: number;
+  totalMoodScore: number;
+  attendanceCount: number;
   taskAnalytics: TaskAnalytics;
   kpiConfigs: KPIConfig[];
   kpiRecords: KPIRecord[];
@@ -46,6 +49,7 @@ const ReportsPage: React.FC = () => {
   
   // Row Expansion State
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
+  const [editingReport, setEditingReport] = useState<EmployeeReportData | null>(null);
 
   const fetchReportsData = useCallback(async () => {
     setLoading(true);
@@ -79,10 +83,26 @@ const ReportsPage: React.FC = () => {
 
         // Behavioral
         const logs = await DataService.getAllBehaviorLogs(emp.id, selectedMonth, selectedYear);
-        const moodValues = logs.map(l => typeof l.mood_rating === 'number' ? l.mood_rating : 5);
+        const moodValues = logs.map(l => {
+            if (typeof l.mood_rating === 'number') return l.mood_rating;
+            return MOOD_RATING_MAP[l.mood_rating] || 5;
+        });
         const avgMood = moodValues.length > 0 ? moodValues.reduce((a,b) => a+b, 0) / moodValues.length : 5;
+        const totalMoodScore = moodValues.reduce((a,b) => a+b, 0);
 
-        const perfScore = (kpiProgress / 100) * 0.5 + (onTimeRate / 100) * 0.5;
+        // Attendance
+        const attendanceLogs = await DataService.getAttendanceForMonth(emp.id, selectedMonth, selectedYear);
+        const absences = attendanceLogs.filter(l => l.status === 'Absent').length;
+
+        // Performance Score Calculation
+        // KPI (40%) + Commitment (30%) + Attendance (20%) + Mood (10%)
+        const kpiScore = kpiProgress;
+        const commitmentScore = payroll.commitmentScore || 0;
+        const attendanceScore = Math.max(0, 100 - (absences * 5)); // 5 points penalty per absence
+        const moodScore = (avgMood / 10) * 100;
+
+        const perfScore = (kpiScore * 0.4) + (commitmentScore * 0.3) + (attendanceScore * 0.2) + (moodScore * 0.1);
+        const normalizedPerfScore = perfScore / 100;
 
         // --- Task Analytics Logic ---
         // 1. Active Completed Tasks
@@ -123,7 +143,18 @@ const ReportsPage: React.FC = () => {
             history: combined
         };
 
-        return { employee: emp, payroll, kpiProgress, performanceScore: perfScore, averageMood: avgMood, taskAnalytics, kpiConfigs, kpiRecords };
+        return { 
+            employee: emp, 
+            payroll, 
+            kpiProgress, 
+            performanceScore: normalizedPerfScore, 
+            averageMood: avgMood, 
+            totalMoodScore,
+            attendanceCount: absences,
+            taskAnalytics, 
+            kpiConfigs, 
+            kpiRecords 
+        };
       }));
       setEmployeeReports(reports);
 
@@ -159,8 +190,8 @@ const ReportsPage: React.FC = () => {
   const totalRevenue = useMemo(() => clients.reduce((sum, c) => sum + c.initial_revenue, 0), [clients]);
   
   const topPerformers = useMemo(() => [...employeeReports].sort((a,b) => b.performanceScore - a.performanceScore).slice(0, 3), [employeeReports]);
-  const happiestEmployees = useMemo(() => [...employeeReports].sort((a,b) => b.averageMood - a.averageMood).slice(0, 3), [employeeReports]);
-  const needsImprovement = useMemo(() => [...employeeReports].sort((a,b) => a.performanceScore - b.performanceScore).slice(0, 2), [employeeReports]);
+  const happiestEmployees = useMemo(() => [...employeeReports].sort((a,b) => b.totalMoodScore - a.totalMoodScore).slice(0, 3), [employeeReports]);
+  const needsImprovement = useMemo(() => employeeReports.filter(r => r.payroll.isNeedsImprovement), [employeeReports]);
 
   const formatTime = (seconds: number) => {
       const h = Math.floor(seconds / 3600);
@@ -281,7 +312,10 @@ const ReportsPage: React.FC = () => {
                     <p className="text-xs text-gray-500">{ROLE_AR_MAP[r.employee.role]}</p>
                   </div>
                 </div>
-                <span className="font-bold text-yellow-600 dark:text-yellow-400">{r.averageMood.toFixed(1)}/10</span>
+                <span className="font-bold text-yellow-600 dark:text-yellow-400">
+                    {r.totalMoodScore.toFixed(0)}
+                    <span className="text-[10px] text-yellow-500">/{Math.round(r.totalMoodScore / r.averageMood * 10) || 40}</span>
+                </span>
               </div>
             ))}
           </div>
@@ -291,21 +325,25 @@ const ReportsPage: React.FC = () => {
         <Card className="border-t-4 border-orange-500">
           <h3 className="text-lg font-bold text-orange-700 dark:text-orange-500 mb-4 flex items-center gap-2">⚠️ يحتاج لتحسين</h3>
           <div className="space-y-4">
-            {needsImprovement.map((r, i) => (
-              <div key={r.employee.id} className="flex items-center justify-between p-2 rounded bg-orange-50 dark:bg-orange-900/20">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{'📉'}</span>
-                  <div>
-                    <p className="font-bold text-sm text-gray-800 dark:text-gray-200">{r.employee.name}</p>
-                    <p className="text-xs text-gray-500">{ROLE_AR_MAP[r.employee.role]}</p>
-                  </div>
+            {needsImprovement.length === 0 ? (
+                <p className="text-gray-500 text-center py-4 text-xs">لا يوجد موظفين بحاجة لتحسين حالياً.</p>
+            ) : (
+                needsImprovement.map((r, i) => (
+                <div key={r.employee.id} className="flex items-center justify-between p-2 rounded bg-orange-50 dark:bg-orange-900/20">
+                    <div className="flex items-center gap-3">
+                    <span className="text-xl">{'📉'}</span>
+                    <div>
+                        <p className="font-bold text-sm text-gray-800 dark:text-gray-200">{r.employee.name}</p>
+                        <p className="text-xs text-gray-500">{ROLE_AR_MAP[r.employee.role]}</p>
+                    </div>
+                    </div>
+                    <div className="text-left max-w-[120px]">
+                    <span className="block font-bold text-orange-600 dark:text-orange-400">{(r.performanceScore * 100).toFixed(1)}%</span>
+                    {r.payroll.improvementNote && <p className="text-[9px] text-orange-400 truncate" title={r.payroll.improvementNote}>{r.payroll.improvementNote}</p>}
+                    </div>
                 </div>
-                <div className="text-left">
-                  <span className="block font-bold text-orange-600 dark:text-orange-400">{(r.performanceScore * 100).toFixed(1)}%</span>
-                  <p className="text-[10px] text-orange-400">بحاجة للمتابعة</p>
-                </div>
-              </div>
-            ))}
+                ))
+            )}
           </div>
         </Card>
       </div>
@@ -419,10 +457,40 @@ const ReportsPage: React.FC = () => {
                                     </div>
 
                                     {/* Card 3: KPI Breakdown */}
-                                    <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 col-span-1 md:col-span-2">
-                                        <h3 className="text-sm font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
-                                            🎯 تفاصيل الـ KPIs
-                                        </h3>
+                                    <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 col-span-1 md:col-span-2 relative">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                                🎯 تفاصيل الـ KPIs والأداء
+                                            </h3>
+                                            <Button 
+                                                variant="secondary" 
+                                                onClick={() => setEditingReport(r)}
+                                                className="text-[10px] py-1 px-2 h-auto"
+                                            >
+                                                ⚙️ تقييم الأداء
+                                            </Button>
+                                        </div>
+                                        
+                                        {/* Performance Metrics Summary */}
+                                        <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+                                            <div className="bg-gray-50 dark:bg-white/5 p-2 rounded border border-gray-100 dark:border-white/5">
+                                                <span className="text-[10px] text-gray-500 block">KPIs (40%)</span>
+                                                <span className="font-bold text-indigo-600 dark:text-indigo-400">{r.kpiProgress.toFixed(0)}%</span>
+                                            </div>
+                                            <div className="bg-gray-50 dark:bg-white/5 p-2 rounded border border-gray-100 dark:border-white/5">
+                                                <span className="text-[10px] text-gray-500 block">الالتزام (30%)</span>
+                                                <span className="font-bold text-indigo-600 dark:text-indigo-400">{r.payroll.commitmentScore || 0}%</span>
+                                            </div>
+                                            <div className="bg-gray-50 dark:bg-white/5 p-2 rounded border border-gray-100 dark:border-white/5">
+                                                <span className="text-[10px] text-gray-500 block">الغياب (20%)</span>
+                                                <span className="font-bold text-red-500">{r.attendanceCount}</span>
+                                            </div>
+                                            <div className="bg-gray-50 dark:bg-white/5 p-2 rounded border border-gray-100 dark:border-white/5">
+                                                <span className="text-[10px] text-gray-500 block">المزاج (10%)</span>
+                                                <span className="font-bold text-yellow-500">{(r.averageMood * 10).toFixed(0)}%</span>
+                                            </div>
+                                        </div>
+
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {r.kpiConfigs.map(conf => {
                                                 const confRecords = r.kpiRecords.filter(rec => rec.kpi_config_id === conf.id);
@@ -466,6 +534,17 @@ const ReportsPage: React.FC = () => {
       </Card>
       
       {showAIModal && <AIAnalysisModal onClose={() => setShowAIModal(false)} />}
+      
+      {editingReport && (
+        <PerformanceEditModal 
+            employee={editingReport.employee}
+            month={selectedMonth}
+            year={selectedYear}
+            initialData={editingReport.payroll}
+            onClose={() => setEditingReport(null)}
+            onSave={fetchReportsData}
+        />
+      )}
     </div>
   );
 };

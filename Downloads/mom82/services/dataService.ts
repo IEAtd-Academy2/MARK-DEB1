@@ -272,6 +272,14 @@ class DataServiceManager {
     return data || [];
   }
 
+  public async getAttendanceForMonth(eid: string, m: number, y: number): Promise<AttendanceLog[]> {
+    const startDateStr = `${y}-${String(m).padStart(2, '0')}-01`;
+    const endDateStr = new Date(y, m, 0).toISOString().split('T')[0];
+    const { data, error } = await supabase.from('attendance_logs').select('*').eq('employee_id', eid).gte('date', startDateStr).lte('date', endDateStr);
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
   public async upsertAttendance(employeeId: string, date: Date, status: AttendanceStatus): Promise<void> {
     const dateStr = date.toISOString().split('T')[0];
     const { error } = await supabase.from('attendance_logs').upsert(
@@ -386,6 +394,18 @@ class DataServiceManager {
   public async updateManagerFeedback(eid: string, m: number, y: number, feedback: string): Promise<void> {
     const { data } = await supabase.from('financials').select('id').eq('employee_id', eid).eq('month', m).eq('year', y).maybeSingle();
     const payload = { employee_id: eid, month: m, year: y, manager_feedback: feedback };
+    if (data && data.id) {
+        const { error } = await supabase.from('financials').update(payload).eq('id', data.id);
+        if(error) throw new Error(error.message);
+    } else {
+        const { error } = await supabase.from('financials').insert(payload);
+        if(error) throw new Error(error.message);
+    }
+  }
+
+  public async updatePerformanceMetrics(eid: string, m: number, y: number, metrics: { commitment_score?: number, is_needs_improvement?: boolean, improvement_note?: string }): Promise<void> {
+    const { data } = await supabase.from('financials').select('id').eq('employee_id', eid).eq('month', m).eq('year', y).maybeSingle();
+    const payload = { employee_id: eid, month: m, year: y, ...metrics };
     if (data && data.id) {
         const { error } = await supabase.from('financials').update(payload).eq('id', data.id);
         if(error) throw new Error(error.message);
@@ -544,7 +564,8 @@ class DataServiceManager {
     return { 
       baseSalary: emp.base_salary, kpiIncentive: totalIncentive, problemBonus: bonus, salesCommission: 0, 
       otherCommission: otherCommissionTotal, manualDeduction: deduction, manualDeductionNote: fin?.manual_deduction_note,
-      finalPayout: final, kpiScorePercentage: totalProgressScore, totalSalesRevenue: 0, managerFeedback: fin?.manager_feedback
+      finalPayout: final, kpiScorePercentage: totalProgressScore, totalSalesRevenue: 0, managerFeedback: fin?.manager_feedback,
+      commitmentScore: fin?.commitment_score || 0, isNeedsImprovement: fin?.is_needs_improvement || false, improvementNote: fin?.improvement_note || ''
     };
   }
 

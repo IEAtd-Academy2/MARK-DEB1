@@ -212,6 +212,9 @@ export interface Financials {
   base_salary_at_month: number; 
   kpi_score_percentage: number; 
   manager_feedback?: string; 
+  commitment_score?: number;
+  is_needs_improvement?: boolean;
+  improvement_note?: string;
 }
 export interface Campaign { id: string; name: string; expenses: number; month: number; year: number; created_at?: string; }
 
@@ -287,6 +290,9 @@ export interface PayrollBreakdown {
   kpiScorePercentage: number; 
   totalSalesRevenue: number; 
   managerFeedback?: string; 
+  commitmentScore?: number;
+  isNeedsImprovement?: boolean;
+  improvementNote?: string;
 }
 
 export interface AIAnalysisResult {

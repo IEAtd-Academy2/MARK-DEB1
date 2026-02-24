@@ -18,6 +18,7 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
     const [improvementNote, setImprovementNote] = useState(initialData.improvementNote || '');
     const [recommendations, setRecommendations] = useState(initialData.recommendations || '');
     const [reportNotes, setReportNotes] = useState(initialData.reportNotes || '');
+    const [isExcluded, setIsExcluded] = useState(initialData.isExcludedFromTopPerformers || false);
     const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
@@ -28,7 +29,8 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
                 is_needs_improvement: isNeedsImprovement,
                 improvement_note: improvementNote,
                 recommendations: recommendations,
-                report_notes: reportNotes
+                report_notes: reportNotes,
+                is_excluded_from_top_performers: isExcluded
             });
             onSave();
             onClose();
@@ -77,6 +79,19 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
                             rows={3}
                             placeholder="ملاحظات إضافية للتقرير..."
                         />
+                    </div>
+
+                    <div className="flex items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <input 
+                            id="exclude-top" 
+                            type="checkbox" 
+                            checked={isExcluded} 
+                            onChange={(e) => setIsExcluded(e.target.checked)}
+                            className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="exclude-top" className="mr-2 block text-sm text-gray-900 dark:text-gray-300">
+                            استبعاد من قائمة "الأعلى أداءً" (Exclude from Top Performers)
+                        </label>
                     </div>
 
                     <div className="flex items-center pt-2 border-t border-gray-200 dark:border-gray-700">

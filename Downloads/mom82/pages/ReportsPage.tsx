@@ -190,7 +190,10 @@ const ReportsPage: React.FC = () => {
 
   const totalRevenue = useMemo(() => clients.reduce((sum, c) => sum + c.initial_revenue, 0), [clients]);
   
-  const topPerformers = useMemo(() => [...employeeReports].sort((a,b) => b.performanceScore - a.performanceScore).slice(0, 3), [employeeReports]);
+  const topPerformers = useMemo(() => [...employeeReports]
+      .filter(r => !r.payroll.isExcludedFromTopPerformers)
+      .sort((a,b) => b.performanceScore - a.performanceScore)
+      .slice(0, 3), [employeeReports]);
   const happiestEmployees = useMemo(() => [...employeeReports].sort((a,b) => b.totalMoodScore - a.totalMoodScore).slice(0, 3), [employeeReports]);
   const needsImprovement = useMemo(() => employeeReports.filter(r => r.payroll.isNeedsImprovement), [employeeReports]);
 

@@ -217,6 +217,7 @@ export interface Financials {
   improvement_note?: string;
   recommendations?: string;
   report_notes?: string;
+  is_excluded_from_top_performers?: boolean;
 }
 export interface Campaign { id: string; name: string; expenses: number; month: number; year: number; created_at?: string; }
 
@@ -297,6 +298,7 @@ export interface PayrollBreakdown {
   improvementNote?: string;
   recommendations?: string;
   reportNotes?: string;
+  isExcludedFromTopPerformers?: boolean;
 }
 
 export interface AIAnalysisResult {

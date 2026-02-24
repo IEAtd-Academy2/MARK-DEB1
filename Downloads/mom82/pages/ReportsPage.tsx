@@ -4,7 +4,7 @@ import Card from '../components/common/Card';
 import Alert from '../components/common/Alert';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { DataService } from '../services/dataService';
-import { EmployeeSummary, Employee, Client, PayrollBreakdown } from '../types';
+import { EmployeeSummary, Employee, Client, PayrollBreakdown, KPIConfig, KPIRecord } from '../types';
 import { ROLE_AR_MAP, DEPARTMENT_AR_MAP } from '../constants';
 import ProgressBar from '../components/common/ProgressBar';
 import AIAnalysisModal from '../components/dashboard/AIAnalysisModal'; // Import Modal
@@ -25,6 +25,8 @@ interface EmployeeReportData {
   performanceScore: number;
   averageMood: number;
   taskAnalytics: TaskAnalytics;
+  kpiConfigs: KPIConfig[];
+  kpiRecords: KPIRecord[];
 }
 
 const ReportsPage: React.FC = () => {
@@ -71,6 +73,10 @@ const ReportsPage: React.FC = () => {
         const kpiProgress = await DataService.getEmployeeCurrentKPIProgress(emp.id, selectedMonth, selectedYear);
         const onTimeRate = await DataService.getEmployeeOnTimeRate(emp.id, selectedMonth, selectedYear);
         
+        // Fetch detailed KPI data
+        const kpiConfigs = await DataService.getKPIConfigs(emp.id, selectedMonth, selectedYear);
+        const kpiRecords = await DataService.getAllKPIRecords(emp.id, selectedMonth, selectedYear);
+
         // Behavioral
         const logs = await DataService.getAllBehaviorLogs(emp.id, selectedMonth, selectedYear);
         const moodValues = logs.map(l => typeof l.mood_rating === 'number' ? l.mood_rating : 5);
@@ -117,7 +123,7 @@ const ReportsPage: React.FC = () => {
             history: combined
         };
 
-        return { employee: emp, payroll, kpiProgress, performanceScore: perfScore, averageMood: avgMood, taskAnalytics };
+        return { employee: emp, payroll, kpiProgress, performanceScore: perfScore, averageMood: avgMood, taskAnalytics, kpiConfigs, kpiRecords };
       }));
       setEmployeeReports(reports);
 
@@ -410,6 +416,42 @@ const ReportsPage: React.FC = () => {
                                                 </table>
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Card 3: KPI Breakdown */}
+                                    <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 col-span-1 md:col-span-2">
+                                        <h3 className="text-sm font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+                                            🎯 تفاصيل الـ KPIs
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {r.kpiConfigs.map(conf => {
+                                                const confRecords = r.kpiRecords.filter(rec => rec.kpi_config_id === conf.id);
+                                                const achieved = confRecords.reduce((s, rec) => s + rec.achieved_value, 0);
+                                                const percent = Math.min(100, (achieved / conf.target_value) * 100);
+                                                
+                                                return (
+                                                    <div key={conf.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                                        <div className="flex justify-between mb-2">
+                                                            <span className="font-bold text-xs text-gray-700 dark:text-gray-300">{conf.kpi_name}</span>
+                                                            <span className="text-[10px] text-gray-500">المستهدف: {conf.target_value}</span>
+                                                        </div>
+                                                        <ProgressBar progress={percent} barColor={percent >= 100 ? 'bg-green-500' : 'bg-indigo-500'} className="h-1.5" />
+                                                        
+                                                        <div className="flex flex-wrap gap-1 mt-2">
+                                                            {confRecords.sort((a,b) => a.week_number - b.week_number).map(rec => (
+                                                                <span key={rec.id} className="text-[9px] bg-white dark:bg-black/20 px-1.5 rounded border border-gray-100 dark:border-white/5 text-gray-500">
+                                                                    أ{rec.week_number}: <span className="font-bold text-gray-700 dark:text-gray-300">{rec.achieved_value}</span>
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                        <div className="mt-2 text-[10px] text-right font-bold text-indigo-600 dark:text-indigo-400">
+                                                            الإجمالي: {achieved}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {r.kpiConfigs.length === 0 && <p className="text-gray-500 text-xs col-span-full text-center">لا توجد KPIs مسجلة.</p>}
+                                        </div>
                                     </div>
 
                                 </div>

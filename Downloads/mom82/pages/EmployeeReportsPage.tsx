@@ -197,16 +197,6 @@ const EmployeeReportsPage: React.FC = () => {
                                         <span className="text-gray-600 dark:text-gray-300">أداء الـ KPIs:</span>
                                         <span className="font-bold text-green-600">+{payroll.kpiIncentive.toLocaleString()}</span>
                                     </div>
-                                    {payroll.kpiDetails && payroll.kpiDetails.length > 0 && (
-                                        <div className="mr-4 space-y-1 border-r-2 border-gray-200 dark:border-white/10 pr-2 mt-1">
-                                            {payroll.kpiDetails.map((detail, idx) => (
-                                                <div key={idx} className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">
-                                                    <span>- {detail.name}</span>
-                                                    <span>+{detail.amount.toLocaleString()}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                                 {payroll.problemBonus > 0 && (
                                     <div className="flex justify-between text-sm">
@@ -258,8 +248,18 @@ const EmployeeReportsPage: React.FC = () => {
                                             <span className="text-[9px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 px-2 py-1 rounded">المستهدف: {conf.target_value}</span>
                                         </div>
                                         <ProgressBar progress={percent} barColor={percent >= 100 ? 'bg-green-500' : 'bg-indigo-500'} />
-                                        <div className="flex justify-between mt-1 text-[10px] text-gray-500">
-                                            <span>تحقق: {achieved}</span>
+                                        
+                                        {/* Weekly Breakdown */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {confRecords.sort((a,b) => a.week_number - b.week_number).map(r => (
+                                                <span key={r.id} className="text-[9px] bg-gray-100 dark:bg-white/5 px-1.5 py-0.5 rounded text-gray-500">
+                                                    أسبوع {r.week_number}: <span className="font-bold text-gray-700 dark:text-gray-300">{r.achieved_value}</span>
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex justify-between mt-2 text-[10px] text-gray-500 border-t border-dashed border-gray-100 dark:border-white/5 pt-1">
+                                            <span>الإجمالي المحقق: <span className="font-bold text-indigo-600">{achieved}</span></span>
                                             <span className="font-black">{percent.toFixed(1)}%</span>
                                         </div>
                                     </div>

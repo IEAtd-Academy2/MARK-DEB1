@@ -527,21 +527,12 @@ class DataServiceManager {
       totalProgressScore = (totalProgressScore / configs.length) * 100;
     }
     const INCENTIVE_THRESHOLD = 65;
-    const kpiDetails: { name: string; amount: number; achieved: number; target: number; unitValue: number }[] = [];
     if (totalProgressScore >= INCENTIVE_THRESHOLD) {
         configs.forEach(conf => {
             const confRecords = records.filter(r => r.kpi_config_id === conf.id);
             const achievedSum = confRecords.reduce((s, r) => s + r.achieved_value, 0);
             const unitPrice = conf.unit_value || 0;
-            const amount = achievedSum * unitPrice;
-            totalIncentive += amount;
-            kpiDetails.push({
-                name: conf.kpi_name,
-                amount: amount,
-                achieved: achievedSum,
-                target: conf.target_value,
-                unitValue: unitPrice
-            });
+            totalIncentive += achievedSum * unitPrice;
         });
     }
     const bonus = await this.getEmployeeProblemSolvingBonusTotal(eid, m, y);
@@ -553,8 +544,7 @@ class DataServiceManager {
     return { 
       baseSalary: emp.base_salary, kpiIncentive: totalIncentive, problemBonus: bonus, salesCommission: 0, 
       otherCommission: otherCommissionTotal, manualDeduction: deduction, manualDeductionNote: fin?.manual_deduction_note,
-      finalPayout: final, kpiScorePercentage: totalProgressScore, totalSalesRevenue: 0, managerFeedback: fin?.manager_feedback,
-      kpiDetails
+      finalPayout: final, kpiScorePercentage: totalProgressScore, totalSalesRevenue: 0, managerFeedback: fin?.manager_feedback
     };
   }
 

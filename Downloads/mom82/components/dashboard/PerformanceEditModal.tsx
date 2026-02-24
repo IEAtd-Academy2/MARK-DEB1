@@ -16,6 +16,8 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
     const [commitmentScore, setCommitmentScore] = useState(initialData.commitmentScore || 0);
     const [isNeedsImprovement, setIsNeedsImprovement] = useState(initialData.isNeedsImprovement || false);
     const [improvementNote, setImprovementNote] = useState(initialData.improvementNote || '');
+    const [recommendations, setRecommendations] = useState(initialData.recommendations || '');
+    const [reportNotes, setReportNotes] = useState(initialData.reportNotes || '');
     const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
@@ -24,7 +26,9 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
             await DataService.updatePerformanceMetrics(employee.id, month, year, {
                 commitment_score: commitmentScore,
                 is_needs_improvement: isNeedsImprovement,
-                improvement_note: improvementNote
+                improvement_note: improvementNote,
+                recommendations: recommendations,
+                report_notes: reportNotes
             });
             onSave();
             onClose();
@@ -37,8 +41,8 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md my-8">
                 <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">تقييم الأداء: {employee.name}</h3>
                 
                 <div className="space-y-4">
@@ -53,7 +57,29 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
                         />
                     </div>
 
-                    <div className="flex items-center">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">التوصيات (Recommendations)</label>
+                        <textarea 
+                            value={recommendations} 
+                            onChange={(e) => setRecommendations(e.target.value)}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            rows={3}
+                            placeholder="توصيات لتطوير الموظف..."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ملاحظات التقرير (Notes)</label>
+                        <textarea 
+                            value={reportNotes} 
+                            onChange={(e) => setReportNotes(e.target.value)}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            rows={3}
+                            placeholder="ملاحظات إضافية للتقرير..."
+                        />
+                    </div>
+
+                    <div className="flex items-center pt-2 border-t border-gray-200 dark:border-gray-700">
                         <input 
                             id="needs-improvement" 
                             type="checkbox" 
@@ -73,7 +99,7 @@ const PerformanceEditModal: React.FC<PerformanceEditModalProps> = ({ employee, m
                                 value={improvementNote} 
                                 onChange={(e) => setImprovementNote(e.target.value)}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                rows={3}
+                                rows={2}
                             />
                         </div>
                     )}

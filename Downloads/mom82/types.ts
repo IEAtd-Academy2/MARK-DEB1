@@ -215,6 +215,8 @@ export interface Financials {
   commitment_score?: number;
   is_needs_improvement?: boolean;
   improvement_note?: string;
+  recommendations?: string;
+  report_notes?: string;
 }
 export interface Campaign { id: string; name: string; expenses: number; month: number; year: number; created_at?: string; }
 
@@ -293,6 +295,8 @@ export interface PayrollBreakdown {
   commitmentScore?: number;
   isNeedsImprovement?: boolean;
   improvementNote?: string;
+  recommendations?: string;
+  reportNotes?: string;
 }
 
 export interface AIAnalysisResult {

@@ -403,7 +403,7 @@ class DataServiceManager {
     }
   }
 
-  public async updatePerformanceMetrics(eid: string, m: number, y: number, metrics: { commitment_score?: number, is_needs_improvement?: boolean, improvement_note?: string }): Promise<void> {
+  public async updatePerformanceMetrics(eid: string, m: number, y: number, metrics: { commitment_score?: number, is_needs_improvement?: boolean, improvement_note?: string, recommendations?: string, report_notes?: string }): Promise<void> {
     const { data } = await supabase.from('financials').select('id').eq('employee_id', eid).eq('month', m).eq('year', y).maybeSingle();
     const payload = { employee_id: eid, month: m, year: y, ...metrics };
     if (data && data.id) {
@@ -565,7 +565,8 @@ class DataServiceManager {
       baseSalary: emp.base_salary, kpiIncentive: totalIncentive, problemBonus: bonus, salesCommission: 0, 
       otherCommission: otherCommissionTotal, manualDeduction: deduction, manualDeductionNote: fin?.manual_deduction_note,
       finalPayout: final, kpiScorePercentage: totalProgressScore, totalSalesRevenue: 0, managerFeedback: fin?.manager_feedback,
-      commitmentScore: fin?.commitment_score || 0, isNeedsImprovement: fin?.is_needs_improvement || false, improvementNote: fin?.improvement_note || ''
+      commitmentScore: fin?.commitment_score || 0, isNeedsImprovement: fin?.is_needs_improvement || false, improvementNote: fin?.improvement_note || '',
+      recommendations: fin?.recommendations || '', reportNotes: fin?.report_notes || ''
     };
   }
 

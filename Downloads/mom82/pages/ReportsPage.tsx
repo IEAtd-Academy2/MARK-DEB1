@@ -492,6 +492,24 @@ const ReportsPage: React.FC = () => {
                                             </div>
                                         </div>
 
+                                        {/* Manager Recommendations & Notes */}
+                                        {(r.payroll.recommendations || r.payroll.reportNotes) && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                {r.payroll.recommendations && (
+                                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+                                                        <h4 className="text-xs font-bold text-blue-800 dark:text-blue-300 mb-1">💡 التوصيات</h4>
+                                                        <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{r.payroll.recommendations}</p>
+                                                    </div>
+                                                )}
+                                                {r.payroll.reportNotes && (
+                                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                                                        <h4 className="text-xs font-bold text-yellow-800 dark:text-yellow-300 mb-1">📝 ملاحظات المدير</h4>
+                                                        <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{r.payroll.reportNotes}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {r.kpiConfigs.map(conf => {
                                                 const confRecords = r.kpiRecords.filter(rec => rec.kpi_config_id === conf.id);

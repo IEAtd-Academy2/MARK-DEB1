@@ -287,6 +287,7 @@ export interface PayrollBreakdown {
   kpiScorePercentage: number; 
   totalSalesRevenue: number; 
   managerFeedback?: string; 
+  kpiDetails?: { name: string; amount: number; achieved: number; target: number; unitValue: number }[];
 }
 
 export interface AIAnalysisResult {

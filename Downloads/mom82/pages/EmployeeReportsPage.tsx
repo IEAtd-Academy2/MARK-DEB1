@@ -192,9 +192,21 @@ const EmployeeReportsPage: React.FC = () => {
                         <div className="p-4 rounded-xl border-2 border-green-100 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10">
                             <p className="text-[10px] font-black text-green-700 dark:text-green-400 uppercase mb-3">تفاصيل الحوافز المكتسبة:</p>
                             <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-300">أداء الـ KPIs:</span>
-                                    <span className="font-bold text-green-600">+{payroll.kpiIncentive.toLocaleString()}</span>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-300">أداء الـ KPIs:</span>
+                                        <span className="font-bold text-green-600">+{payroll.kpiIncentive.toLocaleString()}</span>
+                                    </div>
+                                    {payroll.kpiDetails && payroll.kpiDetails.length > 0 && (
+                                        <div className="mr-4 space-y-1 border-r-2 border-gray-200 dark:border-white/10 pr-2 mt-1">
+                                            {payroll.kpiDetails.map((detail, idx) => (
+                                                <div key={idx} className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">
+                                                    <span>- {detail.name}</span>
+                                                    <span>+{detail.amount.toLocaleString()}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 {payroll.problemBonus > 0 && (
                                     <div className="flex justify-between text-sm">

@@ -213,6 +213,19 @@ const ReportsPage: React.FC = () => {
 
   if (loading) return <LoadingSpinner />;
 
+  const handleExcludeEmployee = async (employeeId: string) => {
+      if (!confirm('هل أنت متأكد من استبعاد هذا الموظف من قائمة الأعلى أداءً لهذا الشهر؟ (يمكنك إعادته من تقييم الأداء)')) return;
+      try {
+          await DataService.updatePerformanceMetrics(employeeId, selectedMonth, selectedYear, {
+              is_excluded_from_top_performers: true
+          });
+          fetchReportsData();
+      } catch (error) {
+          console.error(error);
+          alert('حدث خطأ أثناء تحديث البيانات');
+      }
+  };
+
   return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -289,7 +302,7 @@ const ReportsPage: React.FC = () => {
           <h3 className="text-lg font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2">🏆 الأعلى أداءً</h3>
           <div className="space-y-4">
             {topPerformers.map((r, i) => (
-              <div key={r.employee.id} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+              <div key={r.employee.id} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20 group relative">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{'🥇🥈🥉'[i] || '✨'}</span>
                   <div>
@@ -297,7 +310,18 @@ const ReportsPage: React.FC = () => {
                     <p className="text-xs text-gray-500">{ROLE_AR_MAP[r.employee.role]}</p>
                   </div>
                 </div>
-                <span className="font-bold text-green-600 dark:text-green-400">{(r.performanceScore * 100).toFixed(1)}%</span>
+                
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-green-600 dark:text-green-400">{(r.performanceScore * 100).toFixed(1)}%</span>
+                    {/* Quick Exclude Button */}
+                    <button 
+                        onClick={() => handleExcludeEmployee(r.employee.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-red-500"
+                        title="استبعاد من القائمة"
+                    >
+                        🚫
+                    </button>
+                </div>
               </div>
             ))}
           </div>

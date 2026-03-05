@@ -4,7 +4,7 @@ import {
   TaskStatus, MoodRating, SolutionStatus, EmployeeKPIData, EmployeeTaskDisplay,
   BehaviorChartData, PayrollBreakdown, Client, OtherCommissionLog, EmployeeSummary, Campaign, SiteConfig,
   LeaveRequest, LeaveStatus, LeaveType, KpiStatus, AttendanceLog, AttendanceStatus, PlanSheet, TaskColumn, TaskLog,
-  ManagerTask, AdCampaign, PasswordCategory, VaultPassword
+  ManagerTask, AdCampaign, PasswordCategory, VaultPassword, WeeklyReport, CampaignReport
 } from '../types';
 import {
   DEFAULT_KPI_TARGET, DEFAULT_INCENTIVE_PERCENTAGE, MOOD_RATING_MAP,
@@ -60,6 +60,26 @@ class DataServiceManager {
 
   public async deletePasswordCategory(id: string): Promise<void> {
       await supabase.from('password_categories').delete().eq('id', id);
+  }
+
+  // --- Weekly Reports (New) ---
+  public async createWeeklyReport(report: Partial<WeeklyReport>): Promise<void> {
+      await supabase.from('weekly_reports').insert(report);
+  }
+
+  public async getWeeklyReports(employeeId: string): Promise<WeeklyReport[]> {
+      const { data } = await supabase.from('weekly_reports').select('*').eq('employee_id', employeeId).order('week_start_date', { ascending: false });
+      return data || [];
+  }
+
+  // --- Campaign Reports (New) ---
+  public async createCampaignReport(report: Partial<CampaignReport>): Promise<void> {
+      await supabase.from('campaign_reports').insert(report);
+  }
+
+  public async getCampaignReports(): Promise<CampaignReport[]> {
+      const { data } = await supabase.from('campaign_reports').select('*').order('created_at', { ascending: false });
+      return data || [];
   }
 
   // --- Kanban & Tasks ---
@@ -389,6 +409,27 @@ class DataServiceManager {
         const { error } = await supabase.from('financials').insert(payload);
         if(error) throw new Error(error.message);
     }
+  }
+
+  public async addOrUpdateBonus(eid: string, m: number, y: number, amount: number, isAdditive: boolean = false): Promise<void> {
+    const { data } = await supabase.from('financials').select('*').eq('employee_id', eid).eq('month', m).eq('year', y).maybeSingle();
+    let finalAmount = amount;
+    if (data && isAdditive) {
+        finalAmount = (data.other_commission_payout || 0) + amount;
+    }
+    const payload: any = { employee_id: eid, month: m, year: y, other_commission_payout: finalAmount };
+    if (data && data.id) {
+        const { error } = await supabase.from('financials').update(payload).eq('id', data.id);
+        if(error) throw new Error(error.message);
+    } else {
+        const { error } = await supabase.from('financials').insert(payload);
+        if(error) throw new Error(error.message);
+    }
+  }
+
+  public async createKPIConfig(config: Partial<KPIConfig>): Promise<void> {
+      const { error } = await supabase.from('kpi_configs').insert(config);
+      if (error) throw new Error(error.message);
   }
 
   public async updateManagerFeedback(eid: string, m: number, y: number, feedback: string): Promise<void> {

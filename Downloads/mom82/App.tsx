@@ -15,7 +15,7 @@ import EmployeeReportsPage from './pages/EmployeeReportsPage';
 import PlansPage from './pages/PlansPage'; 
 import TaskBoardPage from './pages/TaskBoardPage'; 
 import ManagerTasksPage from './pages/ManagerTasksPage'; 
-import ActiveCampaignsPage from './pages/ActiveCampaignsPage'; 
+import CampaignReportsPage from './pages/CampaignReportsPage'; 
 import PasswordVaultPage from './pages/PasswordVaultPage'; // New Import
 import { AuthService } from './services/authService';
 import { UserSession } from './types';
@@ -192,7 +192,7 @@ const App: React.FC = () => {
             )}
             <Route path="/vault" element={<PasswordVaultPage />} />
             <Route path="/manager-tasks" element={<ManagerTasksPage />} />
-            <Route path="/active-campaigns" element={<ActiveCampaignsPage />} />
+            <Route path="/campaign-reports" element={<CampaignReportsPage />} />
             <Route path="/clients" element={<ClientManagement />} />
             <Route path="/campaigns" element={<CampaignManagement />} />
             <Route path="/catalogues" element={<CataloguesPage />} />

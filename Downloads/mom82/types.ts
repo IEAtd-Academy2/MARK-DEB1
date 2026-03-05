@@ -425,6 +425,23 @@ export interface ManagerTask {
     is_custom: boolean;
 }
 
+export interface WeeklyReport {
+    id: string;
+    employee_id: string;
+    week_start_date: string;
+    content: string;
+    created_at?: string;
+}
+
+export interface CampaignReport {
+    id: string;
+    campaign_name: string;
+    report_link: string;
+    duration_months: number;
+    duration_years: number;
+    created_at?: string;
+}
+
 export interface AdCampaign {
     id: string;
     name: string;

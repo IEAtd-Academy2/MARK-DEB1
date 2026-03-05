@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <h2 className="text-lg font-bold tracking-tight text-ui-lightText dark:text-white uppercase">نظام الإدارة</h2>
-        <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-widest mt-1 uppercase">Comfort Edition v3</p>
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-widest mt-1 uppercase">Valu Edition v4</p>
       </div>
 
       <nav className="flex-1 p-6 space-y-1 overflow-y-auto">

@@ -14,8 +14,8 @@ import EmployeeReportsPage from './pages/EmployeeReportsPage';
 import PlansPage from './pages/PlansPage'; 
 import TaskBoardPage from './pages/TaskBoardPage'; 
 import ManagerTasksPage from './pages/ManagerTasksPage'; 
-import CampaignReportsPage from './pages/CampaignReportsPage'; 
-import PasswordVaultPage from './pages/PasswordVaultPage'; // New Import
+import CampaignReportsPage from '@/pages/CampaignReportsPage'; // تم التعديل هنا
+import PasswordVaultPage from './pages/PasswordVaultPage'; 
 import { AuthService } from './services/authService';
 import { UserSession } from './types';
 import LoadingSpinner from './components/common/LoadingSpinner';

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Card from '../components/common/Card';
 import Alert from '../components/common/Alert';
@@ -11,6 +10,7 @@ import AIAnalysisModal from '../components/dashboard/AIAnalysisModal'; // Import
 import PerformanceEditModal from '../components/dashboard/PerformanceEditModal';
 import Button from '../components/common/Button';
 import { supabase } from '../supabaseClient'; // Import Supabase
+import { AuthService } from '../services/authService';
 
 interface TaskAnalytics {
     avgTime: number;
@@ -35,6 +35,7 @@ interface EmployeeReportData {
 const ReportsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // State for Month/Year Selection
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -50,6 +51,10 @@ const ReportsPage: React.FC = () => {
   // Row Expansion State
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   const [editingReport, setEditingReport] = useState<EmployeeReportData | null>(null);
+
+  useEffect(() => {
+      AuthService.getCurrentSession().then(s => setIsAdmin(s?.isAdmin || false));
+  }, []);
 
   const fetchReportsData = useCallback(async () => {
     setLoading(true);
@@ -288,11 +293,13 @@ const ReportsPage: React.FC = () => {
           <div className="text-xl md:text-2xl font-bold text-indigo-700 dark:text-indigo-300 mt-1">{(clients.length > 0 ? (totalRevenue/clients.length) : 0).toLocaleString()} <span className="text-[10px] md:text-sm">ج.م</span></div>
           <p className="text-[10px] md:text-xs text-indigo-400 mt-1">متوسط العميل الواحد</p>
         </Card>
+        {isAdmin && (
         <Card className="bg-purple-50 dark:bg-purple-900/10 border-r-4 border-purple-500 p-4 col-span-2 lg:col-span-1">
           <span className="text-purple-600 dark:text-purple-400 text-[10px] md:text-xs font-bold uppercase">إجمالي الرواتب</span>
           <div className="text-xl md:text-2xl font-bold text-purple-700 dark:text-purple-300 mt-1">{employeeReports.reduce((s, r) => s + r.payroll.finalPayout, 0).toLocaleString()} <span className="text-[10px] md:text-sm">ج.م</span></div>
           <p className="text-[10px] md:text-xs text-purple-400 mt-1">شامل الحوافز والخصومات</p>
         </Card>
+        )}
       </div>
 
       {/* --- Performance & Happiness Leaderboard --- */}
@@ -386,10 +393,14 @@ const ReportsPage: React.FC = () => {
                 <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400 w-10"></th>
                 <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الموظف</th>
                 <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400 min-w-[120px]">تحقيق الـ KPI</th>
-                <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الأساسي</th>
-                <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الحوافز (KPIs)</th>
-                <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الخصومات</th>
-                <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400 font-extrabold text-indigo-700 dark:text-indigo-300">الصافي النهائي</th>
+                {isAdmin && (
+                  <>
+                    <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الأساسي</th>
+                    <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الحوافز (KPIs)</th>
+                    <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400">الخصومات</th>
+                    <th className="p-3 text-xs font-bold text-gray-500 dark:text-gray-400 font-extrabold text-indigo-700 dark:text-indigo-300">الصافي النهائي</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -411,79 +422,24 @@ const ReportsPage: React.FC = () => {
                     <td className="p-3 w-40">
                         <ProgressBar progress={r.kpiProgress} barColor={r.kpiProgress >= 80 ? 'bg-green-500' : 'bg-orange-500'} className="text-[10px]" />
                     </td>
-                    <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{r.payroll.baseSalary.toLocaleString()}</td>
-                    <td className="p-3 text-sm text-green-600 dark:text-green-400">
-                        +{(r.payroll.kpiIncentive + r.payroll.problemBonus + r.payroll.salesCommission + r.payroll.otherCommission).toLocaleString()}
-                    </td>
-                    <td className="p-3 text-sm text-red-500">-{r.payroll.manualDeduction.toLocaleString()}</td>
-                    <td className="p-3 font-extrabold text-indigo-800 dark:text-indigo-300 bg-indigo-50/20 dark:bg-indigo-900/20 rounded-lg">{r.payroll.finalPayout.toLocaleString()} ج.م</td>
+                    {isAdmin && (
+                      <>
+                        <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{r.payroll.baseSalary.toLocaleString()}</td>
+                        <td className="p-3 text-sm text-green-600 dark:text-green-400">
+                            +{(r.payroll.kpiIncentive + r.payroll.problemBonus + r.payroll.salesCommission + r.payroll.otherCommission).toLocaleString()}
+                        </td>
+                        <td className="p-3 text-sm text-red-500">-{r.payroll.manualDeduction.toLocaleString()}</td>
+                        <td className="p-3 font-extrabold text-indigo-800 dark:text-indigo-300 bg-indigo-50/20 dark:bg-indigo-900/20 rounded-lg">{r.payroll.finalPayout.toLocaleString()} ج.م</td>
+                      </>
+                    )}
                     </tr>
                     
                     {/* Expanded Task Analytics Section */}
                     {expandedEmployeeId === r.employee.id && (
                         <tr>
-                            <td colSpan={7} className="p-6 bg-gray-50 dark:bg-black/20">
+                            <td colSpan={isAdmin ? 7 : 3} className="p-6 bg-gray-50 dark:bg-black/20">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
                                     
-                                    {/* Card 1: Task Time Analysis */}
-                                    <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10">
-                                        <h3 className="text-sm font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
-                                            ⏱️ تحليل وقت المهام
-                                        </h3>
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl flex-1 text-center">
-                                                <p className="text-xs font-bold text-gray-500">إجمالي المنجز</p>
-                                                <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{r.taskAnalytics.totalCompleted}</p>
-                                            </div>
-                                            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl flex-1 text-center">
-                                                <p className="text-xs font-bold text-gray-500">متوسط الوقت</p>
-                                                <p className="text-xl font-black text-indigo-600 dark:text-indigo-400" dir="ltr">{formatTime(r.taskAnalytics.avgTime)}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">أكثر المهام استهلاكاً للوقت</h4>
-                                        <div className="space-y-2">
-                                            {r.taskAnalytics.slowestTasks.map((t, idx) => (
-                                                <div key={idx} className="flex justify-between items-center text-xs p-2 bg-gray-50 dark:bg-white/5 rounded-lg">
-                                                    <span className="font-medium truncate max-w-[70%] text-gray-700 dark:text-gray-300">{t.title}</span>
-                                                    <span className="font-bold text-gray-600 dark:text-gray-300" dir="ltr">{formatTime(t.duration)}</span>
-                                                </div>
-                                            ))}
-                                            {r.taskAnalytics.slowestTasks.length === 0 && <p className="text-gray-400 text-xs">لا توجد بيانات.</p>}
-                                        </div>
-                                    </div>
-
-                                    {/* Card 2: Completion History */}
-                                    <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10">
-                                        <h3 className="text-sm font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
-                                            ✅ سجل الإنجاز (مهام + أرشيف)
-                                        </h3>
-                                        {r.taskAnalytics.history.length === 0 ? (
-                                            <p className="text-gray-500 text-center py-4 text-xs">لا توجد مهام مكتملة في هذا الشهر.</p>
-                                        ) : (
-                                            <div className="overflow-x-auto max-h-[300px]">
-                                                <table className="w-full text-right text-xs">
-                                                    <thead>
-                                                        <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10 text-gray-500">
-                                                            <th className="p-3">المهمة</th>
-                                                            <th className="p-3">التاريخ</th>
-                                                            <th className="p-3">المدة</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {r.taskAnalytics.history.map((t, idx) => (
-                                                            <tr key={idx} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5">
-                                                                <td className="p-3 font-medium truncate max-w-[100px] text-gray-800 dark:text-gray-200">{t.title}</td>
-                                                                <td className="p-3 text-gray-500">{new Date(t.date).toLocaleDateString()}</td>
-                                                                <td className="p-3 text-green-600 font-bold" dir="ltr">{formatTime(t.duration)}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </div>
-
                                     {/* Card 3: KPI Breakdown */}
                                     <div className="bg-white dark:bg-ui-darkCard p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 col-span-1 md:col-span-2 relative">
                                         <div className="flex justify-between items-start mb-4">

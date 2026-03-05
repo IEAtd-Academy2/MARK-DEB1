@@ -14,7 +14,7 @@ import EmployeeReportsPage from './pages/EmployeeReportsPage';
 import PlansPage from './pages/PlansPage'; 
 import TaskBoardPage from './pages/TaskBoardPage'; 
 import ManagerTasksPage from './pages/ManagerTasksPage'; 
-import CampaignReportsPage from './pages/CampaignReportsPage'; // تم التعديل هنا
+import CampaignReportsPage from './pages/campaignReportsPage'; // تم التعديل هنا
 import PasswordVaultPage from './pages/PasswordVaultPage'; 
 import { AuthService } from './services/authService';
 import { UserSession } from './types';
